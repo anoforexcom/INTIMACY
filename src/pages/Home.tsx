@@ -64,8 +64,9 @@ export default function Home() {
               <Link to="/register" className="btn-primary w-full sm:w-auto flex items-center justify-center gap-2">
                 Start Your Journey
               </Link>
-              <Link to="/packs" className="btn-secondary w-full sm:w-auto">
-                View Packs
+              <Link to="/game-room" className="btn-secondary w-full sm:w-auto flex items-center justify-center gap-2 bg-white/5 border-white/20 hover:bg-white/10">
+                <Play className="w-4 h-4 fill-current" />
+                Preview Game
               </Link>
             </div>
           </motion.div>

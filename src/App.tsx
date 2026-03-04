@@ -12,6 +12,7 @@ import Testimonials from './pages/Testimonials';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import Cookies from './pages/Cookies';
+import GameRoom from './pages/GameRoom';
 
 // Simple wrapper to ensure clean transitions
 function RouteGuard({ children }: { children: React.ReactNode }) {
@@ -44,6 +45,7 @@ function App() {
             <Route path="/terms" element={<RouteGuard><Terms /></RouteGuard>} />
             <Route path="/privacy" element={<RouteGuard><Privacy /></RouteGuard>} />
             <Route path="/cookies" element={<RouteGuard><Cookies /></RouteGuard>} />
+            <Route path="/game-room" element={<GameRoom />} />
           </Routes>
         </AnimatePresence>
       </Layout>

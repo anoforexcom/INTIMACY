@@ -135,9 +135,9 @@ export default function Dashboard() {
                   <div className="w-full bg-white/5 h-2 rounded-full mb-6">
                     <div className="bg-primary h-2 rounded-full" style={{ width: '65%' }}></div>
                   </div>
-                  <button className="w-full border border-primary text-primary group-hover:bg-primary group-hover:text-white py-3 rounded-xl text-sm font-bold transition-all">
+                  <Link to="/game-room" className="w-full border border-primary text-primary group-hover:bg-primary group-hover:text-white py-3 rounded-xl text-sm font-bold transition-all text-center block">
                     Resume Pack
-                  </button>
+                  </Link>
                 </div>
               </div>
 
