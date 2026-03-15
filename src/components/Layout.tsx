@@ -103,6 +103,11 @@ export default function Layout({ children }: LayoutProps) {
 
       <main className="flex-grow">
         {children}
+        {/* Dynamic Background Effect */}
+        <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 blur-[120px] rounded-full animate-pulse"></div>
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-rose-900/20 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
+        </div>
       </main>
 
       <footer className="bg-background-dark border-t border-white/5 py-12">
@@ -123,7 +128,7 @@ export default function Layout({ children }: LayoutProps) {
                 <span className="text-xs text-slate-500 uppercase tracking-widest font-bold">End-to-end encrypted</span>
               </div>
             </div>
-            
+
             <div>
               <h4 className="text-white font-bold mb-6">Platform</h4>
               <ul className="space-y-4">
@@ -142,7 +147,7 @@ export default function Layout({ children }: LayoutProps) {
               </ul>
             </div>
           </div>
-          
+
           <div className="mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-slate-500 text-xs uppercase tracking-widest">
               © 2024 IntimacyQuest. Rediscover each other every day.

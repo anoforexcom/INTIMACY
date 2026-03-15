@@ -1,17 +1,17 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { 
-  LayoutDashboard, 
-  History, 
-  Gift, 
-  Settings, 
-  HelpCircle, 
-  LogOut, 
-  Heart, 
-  Coins, 
-  Play, 
-  Flame, 
-  Trophy, 
+import {
+  LayoutDashboard,
+  History,
+  Gift,
+  Settings,
+  HelpCircle,
+  LogOut,
+  Heart,
+  Coins,
+  Play,
+  Flame,
+  Trophy,
   Star,
   ArrowRight
 } from 'lucide-react';
@@ -20,6 +20,12 @@ import { cn } from '../lib/utils';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = React.useState('dashboard');
+  const [level, setLevel] = React.useState(() => {
+    const saved = localStorage.getItem('intimacy_level');
+    return saved ? parseInt(saved) : 1;
+  });
+
+  const progressPercentage = ((level % 10) / 10) * 100;
 
   const sidebarItems = [
     { id: 'dashboard', icon: <LayoutDashboard className="w-5 h-5" />, label: 'Dashboard' },
@@ -47,8 +53,8 @@ export default function Dashboard() {
               onClick={() => setActiveTab(item.id)}
               className={cn(
                 "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
-                activeTab === item.id 
-                  ? "bg-primary/10 text-primary" 
+                activeTab === item.id
+                  ? "bg-primary/10 text-primary"
                   : "text-slate-400 hover:bg-white/5 hover:text-white"
               )}
             >
@@ -81,7 +87,7 @@ export default function Dashboard() {
             <h1 className="text-4xl font-extrabold text-white mb-2">Welcome back, Lovebirds!</h1>
             <p className="text-slate-400">Ready for your next intimate adventure?</p>
           </div>
-          
+
           <div className="bg-white/5 border border-white/10 px-8 py-4 rounded-[2rem] flex items-center gap-6">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Current Balance</p>
@@ -100,7 +106,7 @@ export default function Dashboard() {
         <div className="relative overflow-hidden rounded-[2.5rem] mb-12 bg-gradient-to-r from-primary to-rose-600 p-10 text-white">
           <div className="relative z-10 max-w-lg">
             <h2 className="text-3xl font-bold mb-4">Continue Playing: "Summer Romance"</h2>
-            <p className="mb-8 text-white/80 text-lg">You're on level 12. Unlock the next challenge to discover something new together.</p>
+            <p className="mb-8 text-white/80 text-lg">You're on level {level}. Unlock the next challenge to discover something new together.</p>
             <button className="bg-white text-primary px-10 py-4 rounded-full font-bold hover:bg-slate-100 transition-all flex items-center gap-2 shadow-xl shadow-black/20">
               <Play className="w-5 h-5 fill-current" />
               Continue Last Session
@@ -118,7 +124,7 @@ export default function Dashboard() {
               <h3 className="text-2xl font-bold text-white">Your Game Packs</h3>
               <Link to="/packs" className="text-primary text-sm font-bold hover:underline">Browse Store</Link>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Pack 1 */}
               <div className="bg-white/5 border border-white/10 rounded-[2rem] overflow-hidden hover:border-primary/50 transition-all group">
@@ -133,7 +139,7 @@ export default function Dashboard() {
                   </div>
                   <p className="text-sm text-slate-400 mb-6 line-clamp-2 leading-relaxed">A collection of 50+ intimate challenges focused on connection.</p>
                   <div className="w-full bg-white/5 h-2 rounded-full mb-6">
-                    <div className="bg-primary h-2 rounded-full" style={{ width: '65%' }}></div>
+                    <div className="bg-primary h-2 rounded-full" style={{ width: `${progressPercentage}%` }}></div>
                   </div>
                   <Link to="/game-room" className="w-full border border-primary text-primary group-hover:bg-primary group-hover:text-white py-3 rounded-xl text-sm font-bold transition-all text-center block">
                     Resume Pack
@@ -168,8 +174,8 @@ export default function Dashboard() {
               <div className="space-y-8">
                 {[
                   { icon: <Flame className="w-6 h-6" />, color: 'text-orange-500', bg: 'bg-orange-500/10', title: '7 Day Streak', desc: "You're on fire! Keep it up." },
-                  { icon: <Trophy className="w-6 h-6" />, color: 'text-purple-500', bg: 'bg-purple-500/10', title: 'Master Explorers', desc: '24 challenges completed this month.' },
-                  { icon: <Star className="w-6 h-6" />, color: 'text-blue-500', bg: 'bg-blue-500/10', title: 'Level 18', desc: '250 XP to reach the next level.' }
+                  { icon: <Trophy className="w-6 h-6" />, color: 'text-purple-500', bg: 'bg-purple-500/10', title: 'Master Explorers', desc: `${level * 2} challenges completed this month.` },
+                  { icon: <Star className="w-6 h-6" />, color: 'text-blue-500', bg: 'bg-blue-500/10', title: `Level ${level}`, desc: `${500 - (level * 10)} XP to reach the next level.` }
                 ].map((stat, i) => (
                   <div key={i} className="flex items-center gap-5">
                     <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center", stat.bg, stat.color)}>
@@ -182,7 +188,7 @@ export default function Dashboard() {
                   </div>
                 ))}
               </div>
-              
+
               <div className="mt-10 pt-8 border-t border-white/5">
                 <p className="text-sm font-bold mb-6 text-center text-slate-300">Need inspiration?</p>
                 <button className="w-full bg-white text-slate-900 py-4 rounded-xl text-sm font-bold hover:bg-slate-100 transition-all shadow-xl shadow-white/5">

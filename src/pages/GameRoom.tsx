@@ -3,136 +3,52 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Heart, Flame, Star, ArrowLeft, ChevronRight, ChevronLeft, Info, Shield, Lock, Sparkles, Loader2 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../lib/utils';
-import { GoogleGenAI } from "@google/genai";
+import { POSITIONS, Position } from '../data/positions';
 
 export default function GameRoom() {
-  const [currentLevel, setCurrentLevel] = React.useState(12);
+  const [positions, setPositions] = React.useState<Position[]>(POSITIONS);
+  const [images, setImages] = React.useState<Record<number, string>>({});
+  const [currentLevel, setCurrentLevel] = React.useState(() => {
+    const saved = localStorage.getItem('intimacy_level');
+    const level = saved ? parseInt(saved) : 1;
+    return level;
+  });
   const [showDetails, setShowDetails] = React.useState(false);
   const [isGenerating, setIsGenerating] = React.useState(false);
   const location = useLocation();
   const isDemo = !location.pathname.includes('dashboard');
 
-  const [positions, setPositions] = React.useState([
-    {
-      id: 1,
-      name: "The Lotus Bloom",
-      intensity: 2,
-      category: "Intimate",
-      description: "A deep connection position that emphasizes eye contact and synchronized breathing. Sit facing each other with legs intertwined.",
-      tips: "Focus on slow movements and maintaining a steady rhythm together. Let your breath guide the pace.",
-      image: null,
-      prompt: "An artistic, minimalist line art illustration of a couple in a sitting intimate embrace, facing each other, legs intertwined, soft romantic lighting, high-end aesthetic, discrete and tasteful."
-    },
-    {
-      id: 2,
-      name: "Midnight Whisper",
-      intensity: 3,
-      category: "Sensual",
-      description: "Designed for maximum skin-to-skin contact. One partner lies down while the other mirrors them closely, whispering desires.",
-      tips: "Use light touches and focus on the sensory experience of being close. Explore the power of soft words.",
-      image: null,
-      prompt: "A high-end, artistic photography style illustration of a couple lying close together in a dark, moody bedroom with moonlight shadows, focusing on the intimacy of a whisper, tasteful and discrete."
-    },
-    {
-      id: 3,
-      name: "The Velvet Wrap",
-      intensity: 4,
-      category: "Adventurous",
-      description: "A dynamic position involving a chair or the edge of the bed, allowing for deep penetration and varied angles.",
-      tips: "Ensure both partners are comfortable with the height. Use pillows for extra support where needed.",
-      image: null,
-      prompt: "An abstract, artistic silhouette of a couple in a dynamic intimate position near a bed, warm amber lighting, elegant shadows, professional photography style, discrete."
-    },
-    {
-      id: 4,
-      name: "Golden Hour Glow",
-      intensity: 1,
-      category: "Romantic",
-      description: "A gentle massage-focused challenge. Spend 10 minutes exploring each other's tension points with warm oil.",
-      tips: "Start with the shoulders and move slowly down the back. Use long, sweeping strokes.",
-      image: null,
-      prompt: "A beautiful, warm-toned illustration of hands massaging a back with glowing oil, golden hour sunlight, peaceful and romantic atmosphere, high-end spa aesthetic."
-    },
-    {
-      id: 5,
-      name: "The Arching Bridge",
-      intensity: 5,
-      category: "Adventurous",
-      description: "An athletic position that requires core strength and flexibility, offering a unique visual perspective for both.",
-      tips: "Take it slow. Communication is key to finding the right balance and depth.",
-      image: null,
-      prompt: "A minimalist, artistic line drawing of a couple in an athletic, flexible intimate position, clean white background, elegant curves, modern art style."
-    },
-    {
-      id: 6,
-      name: "Tangled Silk",
-      intensity: 3,
-      category: "Intimate",
-      description: "Lying on your sides, facing each other, with legs completely locked. This position is about closeness and endurance.",
-      tips: "Perfect for long sessions where the focus is on the emotional bond rather than speed.",
-      image: null,
-      prompt: "An artistic, close-up illustration of two people's legs intertwined under silk sheets, soft morning light, focus on texture and intimacy, high-end editorial style."
-    },
-    {
-      id: 7,
-      name: "The Butterfly Kiss",
-      intensity: 2,
-      category: "Sensual",
-      description: "A challenge focused on the face and neck. Use only your eyelashes and lips to explore your partner's skin.",
-      tips: "Close your eyes to heighten your other senses. It's about the anticipation of touch.",
-      image: null,
-      prompt: "A macro, artistic photography style of a soft kiss on the neck, extreme close-up, shallow depth of field, romantic and sensual lighting, high-end aesthetic."
-    },
-    {
-      id: 8,
-      name: "Starlit Ascent",
-      intensity: 4,
-      category: "Adventurous",
-      description: "Utilizing the standing position against a wall, providing a sense of urgency and raw passion.",
-      tips: "The partner being lifted should wrap their legs tightly. Use the wall for stability.",
-      image: null,
-      prompt: "An artistic silhouette of a couple standing against a wall in a passionate embrace, starlit night background through a window, deep blue and silver tones, elegant and discrete."
-    }
-  ]);
-
-  const [activeIndex, setActiveIndex] = React.useState(0);
+  const activeIndex = (currentLevel - 1) % positions.length;
   const activePosition = positions[activeIndex];
 
   const generateImage = async (index: number) => {
-    if (positions[index].image || isGenerating) return;
+    const position = positions[index];
+    if (images[position.id] || isGenerating) return;
 
     setIsGenerating(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [{ text: positions[index].prompt }],
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        config: {
-          imageConfig: {
-            aspectRatio: "3:4",
-          },
-        },
+        body: JSON.stringify({ prompt: position.prompt }),
       });
 
-      for (const part of response.candidates?.[0]?.content?.parts || []) {
-        if (part.inlineData) {
-          const base64Data = part.inlineData.data;
-          const imageUrl = `data:image/png;base64,${base64Data}`;
-          
-          const newPositions = [...positions];
-          newPositions[index].image = imageUrl;
-          setPositions(newPositions);
-          break;
-        }
+      const data = await response.json();
+
+      if (data.success && data.imageUrl) {
+        setImages(prev => ({ ...prev, [position.id]: data.imageUrl }));
+      } else {
+        throw new Error(data.error || 'Failed to generate image');
       }
     } catch (error) {
       console.error("Error generating image:", error);
-      // Fallback to picsum if AI fails
-      const newPositions = [...positions];
-      newPositions[index].image = `https://picsum.photos/seed/${positions[index].name.replace(/\s/g, '')}/600/800`;
-      setPositions(newPositions);
+      // Fallback
+      setImages(prev => ({
+        ...prev,
+        [position.id]: `https://picsum.photos/seed/${position.name.replace(/\s/g, '')}/600/800`
+      }));
     } finally {
       setIsGenerating(false);
     }
@@ -143,13 +59,19 @@ export default function GameRoom() {
   }, [activeIndex]);
 
   const handleNext = () => {
-    setActiveIndex((prev) => (prev + 1) % positions.length);
-    setCurrentLevel((prev) => Math.min(prev + 1, 50));
+    setCurrentLevel((prev) => {
+      const next = prev >= 50 ? 1 : prev + 1;
+      localStorage.setItem('intimacy_level', next.toString());
+      return next;
+    });
   };
 
   const handlePrev = () => {
-    setActiveIndex((prev) => (prev - 1 + positions.length) % positions.length);
-    setCurrentLevel((prev) => Math.max(prev - 1, 1));
+    setCurrentLevel((prev) => {
+      const next = prev <= 1 ? 50 : prev - 1;
+      localStorage.setItem('intimacy_level', next.toString());
+      return next;
+    });
   };
 
 
@@ -193,10 +115,10 @@ export default function GameRoom() {
               exit={{ opacity: 0, scale: 1.1, y: -20 }}
               className="relative w-full max-w-md aspect-[3/4] rounded-[3rem] overflow-hidden shadow-2xl shadow-black/50 border border-white/10 group bg-slate-900"
             >
-              {activePosition.image ? (
-                <img 
-                  src={activePosition.image} 
-                  alt={activePosition.name} 
+              {images[activePosition.id] ? (
+                <img
+                  src={images[activePosition.id]}
+                  alt={activePosition.name}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   referrerPolicy="no-referrer"
                 />
@@ -210,7 +132,7 @@ export default function GameRoom() {
                 </div>
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
-              
+
               <div className="absolute bottom-10 left-10 right-10">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary bg-primary/10 px-3 py-1 rounded-full">
@@ -223,7 +145,7 @@ export default function GameRoom() {
                   </div>
                 </div>
                 <h2 className="text-4xl font-bold mb-4">{activePosition.name}</h2>
-                <button 
+                <button
                   onClick={() => setShowDetails(true)}
                   className="bg-white text-black px-8 py-3 rounded-full font-bold text-sm flex items-center gap-2 hover:bg-primary hover:text-white transition-all"
                 >
@@ -236,13 +158,13 @@ export default function GameRoom() {
 
           {/* Controls */}
           <div className="mt-12 flex items-center gap-8">
-            <button 
+            <button
               onClick={handlePrev}
               className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-white/5 transition-all"
             >
               <ChevronLeft className="w-8 h-8" />
             </button>
-            <button 
+            <button
               onClick={handleNext}
               className="btn-primary px-12 py-4 rounded-full flex items-center gap-2"
             >
@@ -321,7 +243,7 @@ export default function GameRoom() {
                     <span className="text-primary font-bold uppercase tracking-widest text-xs mb-2 block">Position Guide</span>
                     <h2 className="text-4xl font-bold">{activePosition.name}</h2>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setShowDetails(false)}
                     className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-all"
                   >
@@ -340,7 +262,7 @@ export default function GameRoom() {
                   </div>
                 </div>
 
-                <button 
+                <button
                   onClick={() => setShowDetails(false)}
                   className="btn-primary w-full mt-12 py-4"
                 >
